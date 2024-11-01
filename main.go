@@ -1,13 +1,13 @@
 package main
 
 import (
-    "log"
-    "shortify/api"
-    "shortify/config"
-    "shortify/database"
+	"log"
+	"shortify/api"
+	"shortify/config"
+	"shortify/database"
 
-    "github.com/gin-gonic/gin"
-    _ "github.com/lib/pq"
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
 func main() {

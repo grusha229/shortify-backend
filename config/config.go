@@ -18,9 +18,9 @@ type Config struct {
 
 // LoadConfig загружает параметры конфигурации из переменных окружения
 func LoadConfig() *Config {
-    err := godotenv.Load()
+    err := godotenv.Load("./dev.env");
     if err != nil {
-        log.Fatal("Не удалось загрузить файл .env")
+        log.Fatal("Не удалось загрузить файл dev.env")
     }
 
     return &Config{

@@ -4,17 +4,17 @@ services:
   postgres:
     image: postgres
     container_name: my_postgres
-    env_file: dev.env  
+    env_file: dev.env
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
   backend:
-    build: . 
+    build: .   
     ports:
       - "8080:8080"
-    env_file: dev.env  
+    env_file: dev.env
 
 volumes:
   postgres-data: 
