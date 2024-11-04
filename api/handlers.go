@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"shortify/service"
+	"shortify/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,8 +26,12 @@ func CreateShortLink(c *gin.Context, db *sql.DB) {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось создать ссылку"})
         return
     }
+    baseUrl, err := utils.GetBaseUrl(c);
+    if err != nil {
+        return
+    }
 
-    c.JSON(http.StatusOK, gin.H{"short_url": "http://localhost:8080/" + code})
+    c.JSON(http.StatusOK, gin.H{"short_url": baseUrl + "/link/" + code})
 }
 
 func Redirect(c *gin.Context, db *sql.DB) {
