@@ -23,8 +23,8 @@ func main() {
 
     // Настройка маршрутов
     r := gin.Default()
-    r.POST("/shorten", func(c *gin.Context) { api.CreateShortLink(c, db) })
-    r.GET("/:code", func(c *gin.Context) { api.Redirect(c, db) })
+    r.POST("api/shorten", func(c *gin.Context) { api.CreateShortLink(c, db) })
+    r.GET("api/:code", func(c *gin.Context) { api.Redirect(c, db) })
 
     // Запуск сервера
     if err := r.Run(":" + cfg.ServerPort); err != nil {

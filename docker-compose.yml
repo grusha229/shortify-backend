@@ -11,10 +11,26 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   backend:
-    build: .   
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     env_file: dev.env
 
+  frontend:   # Имя сервиса
+    image: nginx:latest
+    volumes:
+      - ../shortify-frontend/config/:/etc/nginx/
+    build:
+      context: ../shortify-frontend       # Текущая директория как контекст сборки
+      dockerfile: Dockerfile  # Имя Dockerfile
+    ports:
+      - "80:80"  # Проброс порта контейнера на локальный порт
+
 volumes:
-  postgres-data: 
+  postgres-data:
+
+networks:
+  webnet:
+    external: true
