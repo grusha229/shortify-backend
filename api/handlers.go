@@ -31,7 +31,10 @@ func CreateShortLink(c *gin.Context, db *sql.DB) {
         return
     }
 
-    c.JSON(http.StatusOK, gin.H{"short_url": baseUrl + "/link/" + code})
+    c.JSON(http.StatusOK, gin.H{
+        "short_url": baseUrl + "/link/" + code,
+        "original_url": request.URL,
+    })
 }
 
 func Redirect(c *gin.Context, db *sql.DB) {
