@@ -3,51 +3,90 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"reflect"
+	LinksModels "shortify/models"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 // Кэш для хранения записей
 var cache sync.Map
 
-func CreateShortLink(db *sql.DB, originalURL string) (string, error) {
-    // Проверка наличия записи в кэше
-    if code, found := cache.Load(originalURL); found {
-        return code.(string), nil
+func CreateShortLink(db *sql.DB, originalURL string) (LinksModels.ShortenResponse, error) {
+    if cachedData, found := cache.Load(originalURL); found {
+        return cachedData.(LinksModels.ShortenResponse), nil
     }
 
-    // Проверка наличия записи в базе данных
     var existingCode string
-    err := db.QueryRow("SELECT code FROM links WHERE url = $1", originalURL).Scan(&existingCode)
+    var existingID uuid.UUID
+
+    err := db.QueryRow("SELECT id, code FROM links WHERE url = $1", originalURL).Scan(&existingID, &existingCode)
+
     if err == nil {
-        // Если запись найдена, добавляем её в кэш и возвращаем код
-        cache.Store(originalURL, existingCode)
-        return existingCode, nil
+        // Если запись найдена, добавляем её в кэш и возвращаем данные
+        response := LinksModels.ShortenResponse{
+            ID:          existingID,
+            ShortURL:    existingCode,
+            OriginalURL: originalURL,
+        }
+        cache.Store(originalURL, response)
     } else if err != sql.ErrNoRows {
-        // Если произошла ошибка при запросе, возвращаем её
-        return "", err
+        fmt.Printf("Error query: %v\n", err)
+        return LinksModels.ShortenResponse{}, err
     }
 
     // Если записи нет в базе, генерируем новый код
     code := GenerateCode(6)
-    _, err = db.Exec("INSERT INTO links (code, url) VALUES ($1, $2)", code, originalURL)
+    newID := uuid.New()
+
+    _, err = db.Exec("INSERT INTO links (id, code, url) VALUES ($1, $2, $3)", newID, code, originalURL)
     if err != nil {
-        return "", err
+        fmt.Printf("Error insert: %v\n", err)
+        return LinksModels.ShortenResponse{}, err
+    }
+
+    response := LinksModels.ShortenResponse{
+        ID:          newID,
+        ShortURL:    code,
+        OriginalURL: originalURL,
     }
 
     // Сохраняем новый код в кэше
-    cache.Store(originalURL, code)
+    cache.Store(originalURL, response)
 
-    return code, nil
+    return response, nil
 }
 
-func GetOriginalURL(db *sql.DB, code string) (string, error) {
+func GetURLData(db *sql.DB, code string) (LinksModels.ShortenResponse, error) {
     var url string
-    err := db.QueryRow("SELECT url FROM links WHERE code = $1", code).Scan(&url)
+    var id uuid.UUID
+    err := db.QueryRow("SELECT url, id FROM links WHERE code = $1", code).Scan(&url, &id)
     if err != nil {
         if err == sql.ErrNoRows {
-            return "", errors.New("ссылка не найдена")
+            return LinksModels.ShortenResponse{}, errors.New("ссылка не найдена")
         }
-        return "", err
+        return LinksModels.ShortenResponse{}, err
     }
-    return url, nil
+
+    response := LinksModels.ShortenResponse{
+        ID:          id,
+        ShortURL:    code,
+        OriginalURL: url,
+    }
+    return response, nil
+}
+
+func RecordVisit(db *sql.DB, linkID uuid.UUID, ipAddress string, userAgent string, utmSource string) error {
+    fmt.Println("Type of linkID:", reflect.TypeOf(linkID))
+    fmt.Println("Type of ipAddress:", reflect.TypeOf(ipAddress))
+    fmt.Println("Type of userAgent:", reflect.TypeOf(userAgent))
+    fmt.Println("Type of utmSource:", reflect.TypeOf(utmSource))
+
+    _, err := db.Exec(`
+        INSERT INTO link_visits (link_id, ip_address, user_agent, utm_source)
+        VALUES ($1, $2, $3, $4)
+    `, linkID, ipAddress, userAgent, utmSource)
+    return err
 }

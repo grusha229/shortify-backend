@@ -26,14 +26,36 @@ func Connect(cfg *config.Config) (*sql.DB, error) {
 }
 
 func createTable(db *sql.DB) {
-    query := `
+    // Создание расширения pgcrypto для генерации UUID
+    _, err := db.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
+    if err != nil {
+        log.Fatal("Не удалось создать расширение pgcrypto:", err)
+    }
+
+    // Создание таблицы links с UUID для поля id
+    linksQuery := `
     CREATE TABLE IF NOT EXISTS links (
-        id SERIAL PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         code VARCHAR(10) UNIQUE NOT NULL,
         url TEXT NOT NULL
-
     )`
-    if _, err := db.Exec(query); err != nil {
-        log.Fatal("Не удалось создать таблицу:", err)
+
+    if _, err := db.Exec(linksQuery); err != nil {
+        log.Fatal("Не удалось создать таблицу links:", err)
+    }
+
+    // Создание таблицы link_visits с UUID для поля link_id
+    statQuery := `
+    CREATE TABLE IF NOT EXISTS link_visits (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        link_id UUID REFERENCES links(id) ON DELETE CASCADE,  -- Используем UUID для связи с links
+        visited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ip_address VARCHAR(45),
+        user_agent TEXT,
+        utm_source VARCHAR(255)  -- Поле для хранения UTM-метки
+    )`
+
+    if _, err := db.Exec(statQuery); err != nil {
+        log.Fatal("Не удалось создать таблицу link_visits:", err)
     }
 }

@@ -12,3 +12,18 @@ func GetBaseUrl(c *gin.Context) (string, error) {
 
 	return baseURL, nil
 }
+
+func GetUTMParams(c *gin.Context) map[string]string {
+    utmParams := []string{"utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"}
+
+    utmData := make(map[string]string)
+
+    for _, param := range utmParams {
+        value := c.Query(param)  // Получаем значение UTM-метки из запроса
+        if value != "" {
+            utmData[param] = value  // Сохраняем в карту, если параметр присутствует
+        }
+    }
+
+    return utmData
+}
