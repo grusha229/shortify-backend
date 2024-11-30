@@ -17,16 +17,19 @@ services:
     ports:
       - "8080:8080"
     env_file: dev.env
+    restart: always
 
   frontend:   # Имя сервиса
     image: nginx:latest
     volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
       - ../shortify-frontend/config/:/etc/nginx/
     build:
       context: ../shortify-frontend       # Текущая директория как контекст сборки
       dockerfile: Dockerfile  # Имя Dockerfile
     ports:
       - "80:80"  # Проброс порта контейнера на локальный порт
+    restart: always
 
 volumes:
   postgres-data:

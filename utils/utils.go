@@ -1,6 +1,13 @@
 package utils
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"log"
+	"net"
+
+	"github.com/gin-gonic/gin"
+	"github.com/oschwald/geoip2-golang"
+)
 
 func GetBaseUrl(c *gin.Context) (string, error) {
 	// Получение базового URL из запроса
@@ -26,4 +33,24 @@ func GetUTMParams(c *gin.Context) map[string]string {
     }
 
     return utmData
+}
+
+func GetLocationByIp(ipAddress string) (string, error) {
+    geoDB, err := geoip2.Open("GeoIP2-City.mmdb")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer geoDB.Close()
+	ip := net.ParseIP(ipAddress)
+    if ip == nil {
+		return "", fmt.Errorf("invalid IP address: %s", ipAddress)
+	}
+
+	record, err := geoDB.City(ip)
+	if err != nil {
+		log.Fatal(err)
+	}
+    response := record.Country.Names["en"] + ", " + record.City.Names["en"]
+    return response, nil
 }
