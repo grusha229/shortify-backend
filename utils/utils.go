@@ -4,19 +4,38 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 	"github.com/oschwald/geoip2-golang"
 )
 
 func GetBaseUrl(c *gin.Context) (string, error) {
-	// Получение базового URL из запроса
-	scheme := "http"
-	if c.Request.TLS != nil {
-		scheme = "https"
-	}
-	baseURL := scheme + "://" + c.Request.Host
+	// Получаем значение заголовка Origin
+	origin := c.Request.Header.Get("Origin")
+	var scheme string
 
+	if origin != "" {
+		// Пытаемся извлечь схему из заголовка Origin
+		parsedURL, err := url.Parse(origin)
+		if err != nil {
+			// Если не удалось разобрать URL, использует HTTP по умолчанию
+			scheme = "http"
+		} else {
+			// Если Origin содержит схему, используем её
+			scheme = parsedURL.Scheme
+		}
+	} else {
+		// Если заголовка Origin нет, проверяем TLS соединение
+		if c.Request.TLS != nil {
+			scheme = "https"
+		} else {
+			scheme = "http"
+		}
+	}
+
+	// Формируем базовый URL
+	baseURL := scheme + "://" + c.Request.Host
 	return baseURL, nil
 }
 
