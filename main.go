@@ -25,7 +25,7 @@ func main() {
     r := gin.Default()
     r.POST("api/shorten", func(c *gin.Context) { api.CreateShortLink(c, db) })
     r.GET("api/:code", func(c *gin.Context) { api.Redirect(c, db) })
-    r.GET("api/details", func(c *gin.Context) { api.GetLinkDetails(c, db) })
+    r.GET("api/details/:id", func(c *gin.Context) { api.GetLinkDetails(c, db) })
 
     // Запуск сервера
     if err := r.Run(":" + cfg.ServerPort); err != nil {

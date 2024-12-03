@@ -3,12 +3,14 @@ package api
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	LinksModels "shortify/models"
 	"shortify/service"
 	"shortify/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func CreateShortLink(c *gin.Context, db *sql.DB) {
@@ -37,13 +39,16 @@ func CreateShortLink(c *gin.Context, db *sql.DB) {
 }
 
 func GetLinkDetails(c *gin.Context, db *sql.DB) {
-    var request LinksModels.GetURLStatDataPayload
-    if err := c.ShouldBindJSON(&request); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "неправильный запрос"})
+    LinkId := c.Param("id")
+
+    parsedUUID, err := uuid.Parse(LinkId)
+    if err != nil {
+        log.Printf("Invalid UUID: %v\n", err)
+        c.JSON(400, gin.H{"error": "Invalid UUID format"})
         return
     }
 
-    data, err := service.GetURLStatData(db, request.LinkId)
+    data, err := service.GetURLStatData(db, parsedUUID)
 
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось получить данные по url", "text": err.Error()})
