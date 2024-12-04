@@ -66,7 +66,7 @@ func Redirect(c *gin.Context, db *sql.DB) {
         return
     }
 
-    ipAddress := c.ClientIP() 
+    ipAddress := c.ClientIP()
     userAgent := c.GetHeader("User-Agent")
     utmParams := utils.GetUTMParams(c)
     utmSource := utmParams["utm_source"]
@@ -76,6 +76,10 @@ func Redirect(c *gin.Context, db *sql.DB) {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err})
         return
     }
+
+    c.Header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+    c.Header("Pragma", "no-cache")
+    c.Header("Expires", "0")
 
     c.Redirect(http.StatusMovedPermanently, data.OriginalURL)
 }
