@@ -20,8 +20,8 @@ services:
     image: nginx:latest
     volumes:
       - ../shortify-frontend/config/:/etc/nginx/
-      - "/etc/letsencrypt/live/shorty.su/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro"
-      - "/etc/letsencrypt/live/shorty.su/privkey.pem:/etc/nginx/certs/privkey.pem:ro"
+      # - "/etc/letsencrypt/live/shorty.su/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro"
+      # - "/etc/letsencrypt/live/shorty.su/privkey.pem:/etc/nginx/certs/privkey.pem:ro"
     build:
       context: ../shortify-frontend       # Текущая директория как контекст сборки
       dockerfile: Dockerfile  # Имя Dockerfile
